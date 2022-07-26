@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <utility>
@@ -62,9 +63,8 @@ class SingleLinkedList {
         }
  
         BasicIterator& operator++() noexcept {
-            if (node_ != nullptr) {
-                node_ = node_->next_node;
-            }
+            assert(node_ != nullptr);
+            node_ = node_->next_node;
             return *this;
         }
  
@@ -75,10 +75,12 @@ class SingleLinkedList {
         }
  
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_ != nullptr);
             return node_->value;
         }
  
         [[nodiscard]] pointer operator->() const noexcept {
+            assert(node_ != nullptr);
             return &node_->value;
         }
  
@@ -122,10 +124,6 @@ public:
     using ConstIterator = BasicIterator<const Type>;
  
     [[nodiscard]] Iterator begin() noexcept {
-        if (IsEmpty()) {
-            return Iterator(nullptr);
-        }
- 
         return Iterator(head_.next_node);
     }
  
@@ -134,9 +132,6 @@ public:
     }
  
     [[nodiscard]] ConstIterator begin() const noexcept {
-        if (IsEmpty()) {
-            return Iterator(nullptr);
-        }
         return ConstIterator(head_.next_node);
     }
  
@@ -145,9 +140,6 @@ public:
     }
  
     [[nodiscard]] ConstIterator cbegin() const noexcept {
-        if (IsEmpty()) {
-            return Iterator(nullptr);
-        }
         return ConstIterator(head_.next_node);
     }
  
@@ -172,9 +164,7 @@ public:
     }
  
     [[nodiscard]] bool IsEmpty() const noexcept {
-        bool result;
-        size_ == 0 ? result = true : result = false;
-        return result;
+        return size_ == 0;
     }
     
     void PushFront(const Type& value) {
@@ -195,6 +185,7 @@ public:
     }
     
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
         auto &prev_node = pos.node_;
         prev_node->next_node = new Node(value, prev_node->next_node);
         ++size_;
@@ -202,9 +193,7 @@ public:
     }
  
     void PopFront() noexcept {
-        if (IsEmpty()) {
-            return;
-        }
+        assert(size_ != 0);
         Node* temp = head_.next_node->next_node;
         delete head_.next_node;
         head_.next_node = temp;
@@ -212,9 +201,7 @@ public:
     }
  
     Iterator EraseAfter(ConstIterator pos) noexcept {
-        if (IsEmpty()) {
-            return Iterator(nullptr);
-        }
+        assert(pos.node_ != nullptr && pos.node_->next_node != nullptr);
         Node *const node_to_erase = pos.node_->next_node;
         --size_;
         
@@ -231,7 +218,7 @@ public:
  
 private:
     Node head_;
-    size_t size_=0;
+    size_t size_ = 0;
     Node* head_ptr_  = &head_;
     template <typename It>
     void Assign(It from, It to) {
@@ -256,6 +243,9 @@ void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
  
 template <typename Type>
 bool operator==(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
+    if (lhs.GetSize() != rhs.GetSize()) {
+        return false;
+    }
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
  
